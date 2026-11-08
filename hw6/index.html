@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HW6 - Riemann vs Lebesgue integration, numerical normal CDF</title>
+  <style>
+    body {
+      margin: 0;
+      background: #fbfaf6;
+      color: #1d1d1b;
+      font: 17px/1.55 Georgia, "Times New Roman", serif;
+    }
+
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 28px 18px 80px;
+    }
+
+    header {
+      border-bottom: 2px solid #1d1d1b;
+      padding-bottom: 10px;
+      margin-bottom: 26px;
+    }
+
+    header .course {
+      font: 13px/1.4 "Courier New", monospace;
+      color: #555;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.2;
+      margin: 6px 0 8px;
+      font-weight: normal;
+    }
+
+    header .who {
+      font-size: 15px;
+      color: #444;
+    }
+
+    h2 {
+      font-size: 21px;
+      font-weight: normal;
+      margin: 42px 0 10px;
+      border-bottom: 1px solid #c9c5bb;
+      padding-bottom: 3px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 24px 0 6px;
+      font-style: italic;
+      font-weight: normal;
+    }
+
+    code,
+    .mono,
+    td,
+    th,
+    input,
+    select,
+    button,
+    textarea {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 14px;
+    }
+
+    code {
+      background: #efece4;
+      padding: 0 3px;
+      word-break: break-all;
+    }
+
+    a {
+      color: #1a4f9c;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 8px 0 14px;
+    }
+
+    td,
+    th {
+      border: 1px solid #b9b4a8;
+      padding: 4px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #efece4;
+      font-weight: normal;
+    }
+
+    .controls {
+      margin: 10px 0;
+      padding: 10px 12px;
+      border: 1px dashed #a8a397;
+      background: #f4f2ec;
+    }
+
+    .controls label {
+      display: block;
+      margin: 4px 0;
+    }
+
+    .controls .inline label {
+      display: inline;
+      margin-right: 14px;
+    }
+
+    textarea,
+    input[type=text] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px;
+      border: 1px solid #999;
+      background: #fff;
+    }
+
+    input[type=number] {
+      width: 90px;
+    }
+
+    button {
+      padding: 3px 10px;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid #555;
+      margin-top: 4px;
+    }
+
+    button:hover {
+      background: #eee;
+    }
+
+    .warn {
+      color: #8b1e1e;
+      font-size: 14px;
+    }
+
+    .result {
+      font-family: "Courier New", monospace;
+      font-size: 14.5px;
+      border: 1px solid #ddd8cc;
+      padding: 6px 12px;
+      background: #fff;
+      margin: 10px 0;
+      word-break: break-all;
+    }
+
+    .steps {
+      border: 1px solid #ddd8cc;
+      background: #fff;
+    }
+
+    .steps .s {
+      padding: 6px 10px;
+      border-bottom: 1px dotted #ccc;
+    }
+
+    .steps .s:last-child {
+      border-bottom: 0;
+    }
+
+    .steps .lbl {
+      font-size: 14px;
+      color: #8b1e1e;
+    }
+
+    .steps .val {
+      font-family: "Courier New", monospace;
+      font-size: 13.5px;
+      word-break: break-all;
+    }
+
+    .flow {
+      font-family: "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      background: #fff;
+      border: 1px solid #ddd8cc;
+      padding: 10px 14px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    figure {
+      margin: 16px 0;
+    }
+
+    figcaption {
+      font-size: 14px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    canvas {
+      max-width: 100%;
+      display: block;
+      background: #fff;
+      border: 1px solid #ddd8cc;
+    }
+
+    .note {
+      font-size: 15px;
+      color: #444;
+    }
+
+    .tablewrap {
+      overflow-x: auto;
+    }
+
+    dl dt {
+      font-weight: bold;
+      margin-top: 14px;
+    }
+
+    dl dd {
+      margin: 2px 0 0 0;
+    }
+
+    footer {
+      margin-top: 60px;
+      border-top: 1px solid #c9c5bb;
+      padding-top: 8px;
+      font-size: 14px;
+      color: #555;
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+    }
+
+    @media (max-width: 640px) {
+      .grid2 { grid-template-columns: 1fr; }
+    }
+
+    .grid2 figure { margin: 4px 0; }
+    select { padding: 2px; }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <div class="course">Statistics, MSc Cybersecurity, Sapienza, a.y. 2026/27, homework 6</div>
+      <h1>Riemann vs Lebesgue integration, and the numerical normal CDF</h1>
+      <div class="who">November 2026</div>
+    </header>
+
+    <p>Exercise 1 computes the same integrals in two ways: by cutting the domain into pieces (Riemann) and by cutting
+      the range of values into pieces (Lebesgue). Exercise 2 computes the CDF of the standard normal distribution,
+      which has no formula in terms of elementary functions.</p>
+
+    <h2>Exercise 1. Riemann and Lebesgue integration</h2>
+
+    <h3>1.1 The two approximations</h3>
+    <p><b>Riemann.</b> Divide [a, b] into N subintervals of width h = (b &minus; a)/N and add up the areas of the
+      rectangles. I take the value of f at the midpoint of each subinterval:</p>
+    <div class="flow">R_N = h * sum_{i=0..N-1} f(a + (i + 1/2) h)</div>
+    <p><b>Lebesgue.</b> Divide the range of values [0, y<sub>max</sub>] into M levels of height &Delta;y. For each
+      level, measure the set of points x where f is above that level (its preimage), and add up
+      &Delta;y &times; length of that set. This is the "layer cake" form of the Lebesgue integral of a non-negative
+      function:</p>
+    <div class="flow">integral of f = integral_0^inf  mu({x : f(x) > t}) dt
+
+L_M = dy * sum_{k=0..M-1} mu({x : f(x) > (k + 1/2) dy})</div>
+    <p>So Riemann slices the area vertically, Lebesgue slices it horizontally. To use the Lebesgue sum one needs the
+      measure (length) &mu; of the sets {f &gt; t}. For the functions of the assignment this set is an interval, so its
+      length can be written down directly:</p>
+    <div class="tablewrap">
+      <table>
+        <tr>
+          <th>f(x)</th>
+          <th>domain</th>
+          <th>&mu;({f &gt; t})</th>
+          <th>exact integral</th>
+        </tr>
+        <tr>
+          <td>sin x</td>
+          <td>[0, &pi;]</td>
+          <td>&pi; &minus; 2 arcsin t, for 0 &le; t &lt; 1</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>x&sup2;</td>
+          <td>[0, 1]</td>
+          <td>1 &minus; &radic;t</td>
+          <td>1/3</td>
+        </tr>
+        <tr>
+          <td>1 if x &lt; 0.5, 3 if x &ge; 0.5</td>
+          <td>[0, 1]</td>
+          <td>1 for t &lt; 1, 0.5 for 1 &le; t &lt; 3</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>|x &minus; 0.5|</td>
+          <td>[0, 1]</td>
+          <td>1 &minus; 2t, for 0 &le; t &lt; 0.5</td>
+          <td>1/4</td>
+        </tr>
+        <tr>
+          <td>1/&radic;x</td>
+          <td>(0, 1]</td>
+          <td>1 for t &le; 1, 1/t&sup2; for t &gt; 1</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>1 if x &lt; 0.5, 0 if x &ge; 0.5</td>
+          <td>[0, 1]</td>
+          <td>0.5 for t &lt; 1</td>
+          <td>1/2</td>
+        </tr>
+        <tr>
+          <td>sin(x)/x</td>
+          <td>[0, &pi;]</td>
+          <td>x<sub>t</sub>, the solution of sin(x)/x = t (found by bisection, f is decreasing)</td>
+          <td>Si(&pi;) = 1.851937051982466</td>
+        </tr>
+      </table>
+    </div>
+    <p>1/&radic;x is unbounded, so its range cannot be cut into M levels of finite height. I use levels up to
+      T = &radic;M, so that both the height of the levels goes to 0 and the top level goes to infinity as M grows.</p>
+
+    <h3>1.2 Results</h3>
+    <p>Error |approximation &minus; exact value| with N subintervals for Riemann and M = N levels for Lebesgue, and the
+      time taken by this page.</p>
+    <div class="controls">
+      <span class="inline"><label>function <select id="fSel"></select></label></span>
+      <button id="intBtn">compute</button>
+    </div>
+    <div class="tablewrap">
+      <table id="intTable"></table>
+    </div>
+    <figure><canvas id="intChart" width="740" height="240"></canvas>
+      <figcaption>Fig. 1. log<sub>10</sub> of the error against N (log scale): Riemann (black), Lebesgue (red). A zero
+        error (exact result) is not drawn.</figcaption>
+    </figure>
+    <p>All functions with N = M = 1000:</p>
+    <div class="tablewrap">
+      <table id="allTable"></table>
+    </div>
+
+    <h3>1.3 Comparison</h3>
+    <p><b>Do they converge to the same value?</b> Yes, for all the functions above both errors go to 0. This is
+      expected: every Riemann-integrable function (and also the improper integral of 1/&radic;x, which converges
+      absolutely) is Lebesgue integrable with the same integral.</p>
+    <p><b>Accuracy and convergence.</b> For the smooth functions (sin x, x&sup2;, sin(x)/x) the Riemann midpoint
+      error goes down by a factor 100 when N is multiplied by 10, so it is of order 1/N&sup2;. The Lebesgue error goes
+      down more slowly, about like 1/N<sup>1.5</sup>. The reason is the flat parts of f: near the maximum of sin x, or
+      near x = 0 for x&sup2;, a small interval of values corresponds to a large piece of the domain, so the function
+      &mu;({f &gt; t}) changes very quickly there (it behaves like &radic;t) and the sum over levels is less precise.
+      For |x &minus; 0.5| both methods are exact, because &mu;({f &gt; t}) and f are linear and the midpoint rule is
+      exact for linear functions. For 1/&radic;x both methods are slow (error about 1/&radic;N), because of the
+      singularity at 0.</p>
+    <p><b>Step functions.</b> For the step functions what matters is where the cuts are. Riemann is exact when the
+      jump at 0.5 falls on a boundary of the subintervals (N even). Lebesgue is exact when the value 1, where
+      &mu;({f &gt; t}) jumps, is a boundary between two levels: for the 0/1 step this is automatic (1 is the top of the
+      range), for the 1/3 step it is generally not the case and the error is of order &Delta;y (0.05 for M = 10). Lebesgue is in a sense more natural here,
+      since a step function takes only two values and its integral is just "value &times; measure of the set where it
+      takes that value".</p>
+    <p><b>Computational efficiency.</b> Both sums need N (or M) terms. Riemann only needs values of f, which is always
+      possible. Lebesgue needs the measure of the sets {f &gt; t}, which is easy only when we can invert f. For
+      sin(x)/x every level requires a bisection (about 60 evaluations of f), and the table above shows that it is much
+      slower. For a general function the measure would have to be estimated by sampling the domain on a grid and
+      counting the points above each level, which brings back a Riemann-like grid anyway. So in practice, for
+      ordinary functions, Riemann-type rules are simpler and faster. The advantage of Lebesgue is theoretical: it
+      can integrate functions where Riemann fails.</p>
+
+    <h3>1.4 Pathological functions</h3>
+    <p><b>Dirichlet function</b> (1 on the rationals, 0 on the irrationals, on [0, 1]). Every subinterval contains
+      both rationals and irrationals, so for every N:</p>
+    <div class="tablewrap">
+      <table>
+        <tr>
+          <th>Riemann sum with</th>
+          <th>value for every N</th>
+        </tr>
+        <tr>
+          <td>rational points (e.g. the midpoints (2i+1)/(2N))</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>irrational points (e.g. midpoint + &radic;2/(10N))</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <td>upper sum (sup of f on each subinterval)</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>lower sum (inf of f on each subinterval)</td>
+          <td>0</td>
+        </tr>
+      </table>
+    </div>
+    <p>The sums do not converge to one value, so the function is not Riemann integrable. With Lebesgue the question is
+      easy: f &gt; t only on the rationals, which are countable and therefore have measure 0. So the Lebesgue integral
+      is 0. This cannot be computed by evaluating f on a computer: every floating point number is a rational number,
+      so a program would always find f = 1. The result comes from the measure of the sets, not from sampling f.</p>
+    <p><b>Thomae's function</b> (1/q at x = p/q in lowest terms, 0 at irrationals). Here f is small at most points:
+      only finitely many rationals have f &gt; &epsilon;. I compute the Riemann sum exactly at the rational midpoints
+      x = (2i+1)/(2N), using the gcd to reduce the fraction:</p>
+    <div class="controls"><button id="thBtn">compute</button></div>
+    <div class="tablewrap">
+      <table id="thTable"></table>
+    </div>
+    <p>The sums go to 0, a bit more slowly than 1/N (the column N &times; sum grows slowly, like log N), and the same happens for any choice of points, so Thomae's function is
+      Riemann integrable with integral 0. Lebesgue gives 0 directly, because f &gt; 0 only on the rationals, a set of
+      measure 0. Here the two approaches agree, while for the Dirichlet function only Lebesgue gives an answer.</p>
+
+    <h2>Exercise 2. Numerical computation of the normal CDF</h2>
+    <p>The CDF of the standard normal distribution is</p>
+    <div class="flow">Phi(x) = integral_{-inf}^{x} phi(t) dt,      phi(t) = exp(-t^2 / 2) / sqrt(2 pi)</div>
+
+    <h3>2.1 Why there is no elementary formula</h3>
+    <p>An elementary function is one built from polynomials, exp, log, roots and trigonometric functions with a
+      finite number of operations. The antiderivative of e<sup>&minus;t&sup2;/2</sup> is not one of them. This follows
+      from <b>Liouville's theorem</b> (1835), in this form: if f and g are rational functions and g is not constant,
+      then &int; f(t) e<sup>g(t)</sup> dt is elementary only if it is of the form R(t) e<sup>g(t)</sup> with R
+      rational. Differentiating, this means</p>
+    <div class="flow">f = R' + g' R</div>
+    <p>For our integral f = 1 and g = &minus;t&sup2;/2, so we need a rational R with R' &minus; tR = 1. There is none:</p>
+    <ul>
+      <li>if R is a polynomial of degree d, then tR has degree d + 1 and R' has degree d &minus; 1, so R' &minus; tR
+        has degree d + 1 &ge; 1 and cannot be the constant 1;</li>
+      <li>if R has a pole of order k at some point a, then R' has a pole of order k + 1 there, while tR has at most
+        order k, so R' &minus; tR still has a pole and cannot be 1.</li>
+    </ul>
+    <p>So &Phi; cannot be written with elementary functions.</p>
+
+    <h3>2.2 The error function</h3>
+    <p>The way out is to give the integral a name. The error function is defined as</p>
+    <div class="flow">erf(z) = (2 / sqrt(pi)) * integral_0^z exp(-s^2) ds
+
+Phi(x) = (1 + erf(x / sqrt(2))) / 2          (substitution t = s sqrt(2))</div>
+    <p>This is an exact formula for &Phi;, but it only moves the problem: erf is itself defined by the integral, and to
+      get its numerical value we still need an algorithm. It is the same situation as sin or exp: they are "known"
+      functions, but a computer evaluates them with series or approximations. JavaScript does not even have a
+      built-in erf, so here everything is computed by hand.</p>
+
+    <h3>2.3 Methods</h3>
+    <ul>
+      <li><b>Trapezoidal rule</b> on &Phi;(x) = 1/2 + &int;<sub>0</sub><sup>x</sup> &phi;(t) dt, with n subintervals.
+        Error of order 1/n&sup2;.</li>
+      <li><b>Simpson's rule</b> on the same integral. Error of order 1/n<sup>4</sup>.</li>
+      <li><b>Power series of erf</b>, obtained by integrating the series of e<sup>&minus;s&sup2;</sup> term by
+        term:
+        <div class="flow">erf(z) = (2 / sqrt(pi)) * sum_{n>=0} (-1)^n z^(2n+1) / (n! (2n+1))</div>
+        It converges for every z. I add terms until they are smaller than 10<sup>&minus;17</sup> times the sum.</li>
+      <li><b>Abramowitz-Stegun 7.1.26</b>, a closed-form approximation of erf with five constants, maximum error
+        1.5&middot;10<sup>&minus;7</sup>. It is what I used in HW4.</li>
+      <li><b>Continued fraction for the tail</b> (Laplace), for large x:
+        <div class="flow">1 - Phi(x) = phi(x) / (x + 1/(x + 2/(x + 3/(x + ...))))</div>
+        evaluated from the bottom with 80 levels.</li>
+    </ul>
+    <p><b>My method.</b> Power series for |x| &lt; 3, continued fraction for |x| &ge; 3, and &Phi;(&minus;x) =
+      1 &minus; &Phi;(x) for the sign. The reason for the switch is explained in 2.4.</p>
+
+    <h3>2.4 Accuracy</h3>
+    <p>The reference values are computed with <code>mpmath.ncdf</code> in Python with 30 significant digits; they can be
+      checked on the web, for example on Wolfram Alpha with
+      <a href="https://www.wolframalpha.com/input?i=N%5BCDF%5BNormalDistribution%5B0%2C1%5D%2C+1%5D%2C+20%5D">N[CDF[NormalDistribution[0,1], 1], 20]</a>.
+      Absolute errors (trapezoid and Simpson with n = 100):</p>
+    <div class="controls"><button id="cdfBtn">compute</button></div>
+    <div class="tablewrap">
+      <table id="cdfTable"></table>
+    </div>
+    <p>Simpson is much better than the trapezoid with the same n. The series is accurate to about
+      10<sup>&minus;16</sup> for small |x|, but for large |x| it gets worse: the terms first grow (at x = 5 the
+      largest term is about 4500) and then cancel, so digits are lost in the subtraction; at x = &plusmn;8 the error is
+      already about 10<sup>&minus;4</sup>. The A-S formula is fast but
+      only accurate to about 10<sup>&minus;7</sup>.</p>
+    <p>For negative x the absolute error is not the right measure: &Phi;(&minus;5) &asymp; 2.9&middot;10<sup>&minus;7</sup>,
+      so an absolute error of 10<sup>&minus;9</sup> is already a relative error of 0.3 %. Computing &Phi;(&minus;x) as
+      1/2 &minus; (something close to 1/2) loses the small digits. The continued fraction computes the tail directly
+      and keeps the relative error near 10<sup>&minus;15</sup>, which is why I use it for |x| &ge; 3. The last column
+      shows the relative error of my method.</p>
+
+    <h3>2.5 Convergence of the integration rules</h3>
+    <div class="tablewrap">
+      <table id="convTable"></table>
+    </div>
+    <p>Doubling n divides the trapezoid error by about 4 and the Simpson error by about 16, as expected for errors of
+      order 1/n&sup2; and 1/n<sup>4</sup>. To reach 10<sup>&minus;10</sup> at x = 3 Simpson needs about 150 subintervals,
+      the trapezoid about 10000.</p>
+
+    <h3>2.6 Efficiency</h3>
+    <p>Time per evaluation, measured on 20000 evaluations at random points in [&minus;4, 4]:</p>
+    <div class="controls"><button id="benchBtn">measure</button></div>
+    <div class="tablewrap">
+      <table id="benchTable"></table>
+    </div>
+    <p>A-S is the fastest (one exponential and a few multiplications) but the least accurate. The series needs 10 to
+      35 terms for |x| &lt; 3, and the continued fraction 80 divisions, both still much faster than Simpson with
+      n = 100, which needs 101 exponentials. So the series plus continued fraction is both accurate and cheap.</p>
+
+    <h3>2.7 Conclusion</h3>
+    <p>The normal CDF has no elementary formula (Liouville), erf gives it a name and an exact representation, but the
+      numbers still come from a numerical method. Integration rules work but need many evaluations of the exponential;
+      the power series is the best choice near the centre, and a separate method for the tails is needed if small
+      probabilities like &Phi;(&minus;5) must be computed with good relative accuracy, which is the case in
+      statistical tests with small p-values.</p>
+
+    <footer>The code is plain JavaScript inside this page. Reference values: mpmath 1.3, 30 digits.</footer>
+  </main>
+
+  <script>
+    function byId(id) { return document.getElementById(id); }
+    function e3(v) { return v === 0 ? "0" : v.toExponential(2); }
+
+    // ---------- simple line chart, log10 of values against log10 of x ----------
+    function logChart(id, xs, series) {
+      var c = byId(id), g = c.getContext("2d"), W = c.width, H = c.height, L = 44, R = 28, B = 30, T = 12;
+      g.clearRect(0, 0, W, H); g.font = "11px Courier New";
+      var all = []; series.forEach(function (s) { s.values.forEach(function (v) { if (v > 0) all.push(Math.log10(v)); }); });
+      var ymin = Math.floor(Math.min.apply(null, all)), ymax = Math.ceil(Math.max.apply(null, all));
+      if (ymin === ymax) ymax = ymin + 1;
+      var x0 = Math.log10(xs[0]), x1 = Math.log10(xs[xs.length - 1]);
+      function X(v) { return L + (Math.log10(v) - x0) / (x1 - x0) * (W - L - R); }
+      function Y(v) { return H - B - (v - ymin) / (ymax - ymin) * (H - B - T); }
+      g.strokeStyle = "#999"; g.beginPath(); g.moveTo(L, T); g.lineTo(L, H - B); g.lineTo(W - R, H - B); g.stroke();
+      g.fillStyle = "#555";
+      var step = Math.max(1, Math.ceil((ymax - ymin) / 6));
+      for (var y = ymin; y <= ymax; y += step) { g.fillText(String(y), 6, Y(y) + 4); g.strokeStyle = "#eee"; g.beginPath(); g.moveTo(L + 1, Y(y)); g.lineTo(W - R, Y(y)); g.stroke(); }
+      xs.forEach(function (v) { var s = String(v); g.fillText(s, X(v) - 3 * s.length, H - B + 14); });
+      g.fillText("N", W - R - 8, H - 4);
+      series.forEach(function (s, si) {
+        g.strokeStyle = s.color; g.fillStyle = s.color; g.lineWidth = 1.6; g.beginPath(); var started = false;
+        s.values.forEach(function (v, i) {
+          if (!(v > 0)) { started = false; return; }
+          var px = X(xs[i]), py = Y(Math.log10(v));
+          if (!started) { g.moveTo(px, py); started = true; } else g.lineTo(px, py);
+        });
+        g.stroke(); g.lineWidth = 1;
+        s.values.forEach(function (v, i) { if (v > 0) g.fillRect(X(xs[i]) - 2, Y(Math.log10(v)) - 2, 4, 4); });
+        g.fillRect(W - R - 160, T + 6 + 14 * si, 14, 3); g.fillStyle = "#333"; g.fillText(s.name, W - R - 140, T + 10 + 14 * si);
+      });
+    }
+
+    // ================= Exercise 1 =================
+    function sinc(x) { return x === 0 ? 1 : Math.sin(x) / x; }
+    function bisectDec(f, t, a, b) { // f decreasing on [a, b]: x with f(x) = t
+      for (var i = 0; i < 60; i++) { var m = (a + b) / 2; if (f(m) > t) a = m; else b = m; }
+      return (a + b) / 2;
+    }
+    // f, domain [a, b], ymax (null = unbounded), measure of {f > t}, exact integral
+    var FUNCS = [
+      { name: "sin(x), [0, pi]", f: Math.sin, a: 0, b: Math.PI, ymax: 1, mu: function (t) { return t < 1 ? Math.PI - 2 * Math.asin(t) : 0; }, exact: 2 },
+      { name: "x^2, [0, 1]", f: function (x) { return x * x; }, a: 0, b: 1, ymax: 1, mu: function (t) { return t < 1 ? 1 - Math.sqrt(t) : 0; }, exact: 1 / 3 },
+      { name: "step 1 / 3, [0, 1]", f: function (x) { return x < 0.5 ? 1 : 3; }, a: 0, b: 1, ymax: 3, mu: function (t) { return t < 1 ? 1 : t < 3 ? 0.5 : 0; }, exact: 2 },
+      { name: "|x - 0.5|, [0, 1]", f: function (x) { return Math.abs(x - 0.5); }, a: 0, b: 1, ymax: 0.5, mu: function (t) { return Math.max(0, 1 - 2 * t); }, exact: 0.25 },
+      { name: "1/sqrt(x), (0, 1]", f: function (x) { return 1 / Math.sqrt(x); }, a: 0, b: 1, ymax: null, mu: function (t) { return t <= 1 ? 1 : 1 / (t * t); }, exact: 2 },
+      { name: "step 1 / 0, [0, 1]", f: function (x) { return x < 0.5 ? 1 : 0; }, a: 0, b: 1, ymax: 1, mu: function (t) { return t < 1 ? 0.5 : 0; }, exact: 0.5 },
+      { name: "sin(x)/x, [0, pi]", f: sinc, a: 0, b: Math.PI, ymax: 1, mu: function (t) { return t < 1 ? bisectDec(sinc, t, 0, Math.PI) : 0; }, exact: 1.8519370519824663 }
+    ];
+    FUNCS.forEach(function (F, i) { var o = document.createElement("option"); o.value = i; o.textContent = F.name; byId("fSel").appendChild(o); });
+
+    function riemann(F, N) {
+      var h = (F.b - F.a) / N, s = 0;
+      for (var i = 0; i < N; i++) s += F.f(F.a + (i + 0.5) * h);
+      return h * s;
+    }
+    function lebesgue(F, M) {
+      var top = F.ymax === null ? Math.sqrt(M) : F.ymax, dy = top / M, s = 0;
+      for (var k = 0; k < M; k++) s += F.mu((k + 0.5) * dy);
+      return dy * s;
+    }
+    function timed(fn) { var t0 = performance.now(), v = fn(); return { v: v, ms: performance.now() - t0 }; }
+
+    var NS = [10, 100, 1000, 10000, 100000];
+    function runIntegral() {
+      var F = FUNCS[+byId("fSel").value], eR = [], eL = [];
+      var html = "<tr><th>N = M</th><th>Riemann</th><th>error</th><th>time (ms)</th><th>Lebesgue</th><th>error</th><th>time (ms)</th></tr>";
+      NS.forEach(function (N) {
+        var r = timed(function () { return riemann(F, N); }), l = timed(function () { return lebesgue(F, N); });
+        var er = Math.abs(r.v - F.exact), el = Math.abs(l.v - F.exact); eR.push(er); eL.push(el);
+        html += "<tr><td>" + N + "</td><td>" + r.v.toPrecision(12) + "</td><td>" + e3(er) + "</td><td>" + r.ms.toFixed(1) +
+          "</td><td>" + l.v.toPrecision(12) + "</td><td>" + e3(el) + "</td><td>" + l.ms.toFixed(1) + "</td></tr>";
+      });
+      byId("intTable").innerHTML = html;
+      logChart("intChart", NS, [{ name: "Riemann", color: "#1d1d1b", values: eR }, { name: "Lebesgue", color: "#8b1e1e", values: eL }]);
+    }
+    function runAll() {
+      var html = "<tr><th>f</th><th>exact</th><th>Riemann error</th><th>Lebesgue error</th></tr>";
+      FUNCS.forEach(function (F) {
+        html += "<tr><td>" + F.name + "</td><td>" + F.exact.toPrecision(10) + "</td><td>" + e3(Math.abs(riemann(F, 1000) - F.exact)) +
+          "</td><td>" + e3(Math.abs(lebesgue(F, 1000) - F.exact)) + "</td></tr>";
+      });
+      byId("allTable").innerHTML = html;
+    }
+    byId("intBtn").onclick = runIntegral;
+    byId("fSel").onchange = runIntegral;
+
+    function gcd(a, b) { while (b) { var t = a % b; a = b; b = t; } return a; }
+    function runThomae() {
+      var html = "<tr><th>N</th><th>Riemann sum at x = (2i+1)/(2N)</th><th>N &times; sum</th></tr>";
+      NS.forEach(function (N) {
+        var s = 0;
+        for (var i = 0; i < N; i++) { var p = 2 * i + 1, q = 2 * N; s += gcd(p, q) / q; } // f(p/q) = 1/(q/gcd)
+        s /= N;
+        html += "<tr><td>" + N + "</td><td>" + s.toExponential(3) + "</td><td>" + (N * s).toFixed(2) + "</td></tr>";
+      });
+      byId("thTable").innerHTML = html;
+    }
+    byId("thBtn").onclick = runThomae;
+
+    // ================= Exercise 2 =================
+    var SQ2PI = Math.sqrt(2 * Math.PI);
+    function phi(t) { return Math.exp(-t * t / 2) / SQ2PI; }
+
+    function cdfTrap(x, n) {
+      var h = x / n, s = 0.5 * (phi(0) + phi(x));
+      for (var i = 1; i < n; i++) s += phi(i * h);
+      return 0.5 + h * s;
+    }
+    function cdfSimpson(x, n) { // n even
+      var h = x / n, s = phi(0) + phi(x);
+      for (var i = 1; i < n; i++) s += (i % 2 ? 4 : 2) * phi(i * h);
+      return 0.5 + h * s / 3;
+    }
+    function cdfSeries(x) {
+      var z = x / Math.SQRT2, term = z, s = z;
+      for (var n = 1; n < 200; n++) {
+        term *= -z * z / n;
+        var add = term / (2 * n + 1);
+        s += add;
+        if (Math.abs(add) <= 1e-17 * Math.abs(s)) break;
+      }
+      return 0.5 + s / Math.sqrt(Math.PI);
+    }
+    function cdfAS(x) { // Abramowitz-Stegun 7.1.26
+      var z = Math.abs(x) / Math.SQRT2, t = 1 / (1 + 0.3275911 * z);
+      var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z);
+      return 0.5 * (1 + (x >= 0 ? y : -y));
+    }
+    function upperTail(x) { // 1 - Phi(x) for x > 0, Laplace continued fraction
+      var d = x;
+      for (var k = 80; k >= 1; k--) d = x + k / d;
+      return phi(x) / d;
+    }
+    function normalCdf(x) { // my method
+      if (Math.abs(x) < 3) return cdfSeries(x);
+      return x > 0 ? 1 - upperTail(x) : upperTail(-x);
+    }
+
+    // reference values: mpmath.ncdf, 30 digits
+    var REF = [[-8, 6.220960574271784e-16], [-5, 2.866515718791939e-7], [-3, 0.0013498980316300946], [-2, 0.02275013194817921],
+      [-1, 0.15865525393145705], [0, 0.5], [0.5, 0.6914624612740131], [1, 0.8413447460685429], [1.5, 0.9331927987311419],
+      [2, 0.9772498680518208], [2.5, 0.9937903346742238], [3, 0.9986501019683699], [4, 0.9999683287581669],
+      [5, 0.9999997133484281], [8, 0.9999999999999993]];
+
+    function runCdf() {
+      var html = "<tr><th>x</th><th>reference &Phi;(x)</th><th>trapezoid</th><th>Simpson</th><th>series</th><th>A-S</th><th>my method</th><th>my method, relative</th></tr>";
+      REF.forEach(function (r) {
+        var x = r[0], v = r[1], mine = normalCdf(x);
+        html += "<tr><td>" + x + "</td><td>" + v.toPrecision(16) + "</td><td>" + e3(Math.abs(cdfTrap(x, 100) - v)) + "</td><td>" +
+          e3(Math.abs(cdfSimpson(x, 100) - v)) + "</td><td>" + e3(Math.abs(cdfSeries(x) - v)) + "</td><td>" + e3(Math.abs(cdfAS(x) - v)) +
+          "</td><td>" + e3(Math.abs(mine - v)) + "</td><td>" + e3(Math.abs(mine - v) / v) + "</td></tr>";
+      });
+      byId("cdfTable").innerHTML = html;
+    }
+    byId("cdfBtn").onclick = runCdf;
+
+    function runConv() {
+      var html = "<tr><th>n</th><th>trapezoid, x = 1</th><th>Simpson, x = 1</th><th>trapezoid, x = 3</th><th>Simpson, x = 3</th></tr>";
+      var r1 = 0.8413447460685429, r3 = 0.9986501019683699;
+      [4, 8, 16, 32, 64, 128, 256, 512].forEach(function (n) {
+        html += "<tr><td>" + n + "</td><td>" + e3(Math.abs(cdfTrap(1, n) - r1)) + "</td><td>" + e3(Math.abs(cdfSimpson(1, n) - r1)) +
+          "</td><td>" + e3(Math.abs(cdfTrap(3, n) - r3)) + "</td><td>" + e3(Math.abs(cdfSimpson(3, n) - r3)) + "</td></tr>";
+      });
+      byId("convTable").innerHTML = html;
+    }
+
+    function runBench() {
+      var xs = []; for (var i = 0; i < 20000; i++) xs.push(8 * Math.random() - 4);
+      var methods = [["trapezoid, n = 100", function (x) { return cdfTrap(x, 100); }], ["Simpson, n = 100", function (x) { return cdfSimpson(x, 100); }],
+        ["series", cdfSeries], ["A-S 7.1.26", cdfAS], ["my method (series + continued fraction)", normalCdf]];
+      var html = "<tr><th>method</th><th>time per evaluation (&micro;s)</th></tr>";
+      methods.forEach(function (m) {
+        var t0 = performance.now(), acc = 0;
+        for (var i = 0; i < xs.length; i++) acc += m[1](xs[i]);
+        var us = (performance.now() - t0) * 1000 / xs.length;
+        html += "<tr><td>" + m[0] + "</td><td>" + us.toFixed(3) + "</td></tr>";
+      });
+      byId("benchTable").innerHTML = html;
+    }
+    byId("benchBtn").onclick = runBench;
+
+    runIntegral(); runAll(); runThomae(); runCdf(); runConv(); runBench();
+  </script>
+</body>
+
+</html>
